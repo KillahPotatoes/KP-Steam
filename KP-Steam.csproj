@@ -4,6 +4,15 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <RootNamespace>KP_Steam_Uploader</RootNamespace>
+        <Authors>KillahPotatoes, veteran29</Authors>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,6 +26,37 @@
       <PackageReference Include="Serilog" Version="2.8.0" />
       <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
       <PackageReference Include="Serilog.Settings.Configuration" Version="3.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Steamworks.NET, Version=12.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>assembly\Steamworks.NET\Windows-x64\Steamworks.NET.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContentWithTargetPath Include="assembly\Steamworks.NET\Windows-x64\steam_api64.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <TargetPath>steam_api64.dll</TargetPath>
+        </ContentWithTargetPath>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="assembly\**" />
+      <None Update="appsettings.Development.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="appsettings.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="assembly\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="assembly\**" />
     </ItemGroup>
 
 </Project>
