@@ -17,7 +17,7 @@ namespace KP_Steam_Uploader
         {
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile(AppDomain.CurrentDomain.BaseDirectory + "\\appsettings.json", true, true)
+                .AddJsonFile(AppDomain.CurrentDomain.BaseDirectory + "\\appsettings.json", false, false)
                 .AddEnvironmentVariables()
                 .Build();
                 
