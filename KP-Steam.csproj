@@ -3,8 +3,12 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp2.2</TargetFramework>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <LangVersion>7.1</LangVersion>
+        <!---->
         <RootNamespace>KP_Steam_Uploader</RootNamespace>
         <Authors>KillahPotatoes, veteran29</Authors>
+        <AssemblyName>kpsteam</AssemblyName>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
