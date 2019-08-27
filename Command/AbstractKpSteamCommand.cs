@@ -42,6 +42,7 @@ namespace KP_Steam_Uploader.Command
 
         protected void WriteSteamAppId(uint appId)
         {
+            Logger.LogInformation($"Writing AppId {appId}");
             File.WriteAllText("steam_appid.txt",appId.ToString());
         }
     }

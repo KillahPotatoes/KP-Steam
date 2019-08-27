@@ -23,13 +23,31 @@ namespace KP_Steam_Uploader.Command.Download
 
         protected override async Task<int> OnExecute(CommandLineApplication app)
         {
-            Logger.LogInformation($"Downloading item {ItemId} for app {AppId}");
-            Console.Out.WriteLine($"Downloading item {ItemId} for app {AppId}");
+            Logger.LogDebug("Executing DownloadCommand");
+
+            if (AppId == 0)
+            {
+                Console.WriteLine("Arma3 - 107410");
+                
+                Console.Write("Please specify AppId: ");
+                var appId = Console.In.ReadLine();
+                AppId = uint.Parse(appId);
+            }
+            
+            if (ItemId == 0)
+            {
+                Console.Out.Write("Please specify ItemId: ");
+                var itemId = Console.In.ReadLine();
+                ItemId = uint.Parse(itemId);
+            }
 
             try
             {
-                InitializeSteam();
+                Logger.LogInformation("Initializing Steam");
                 WriteSteamAppId(AppId);
+                InitializeSteam();
+                
+                Console.Out.WriteLine($"Downloading item {ItemId} for app {AppId}");
                 
                 if (!SteamUGC.DownloadItem(new PublishedFileId_t(ItemId), true))
                 {
