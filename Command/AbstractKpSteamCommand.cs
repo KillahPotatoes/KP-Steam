@@ -1,7 +1,9 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
+using Steamworks;
 
 namespace KP_Steam_Uploader.Command
 {
@@ -9,6 +11,7 @@ namespace KP_Steam_Uploader.Command
     {
         protected ILogger Logger;
         protected IConsole Console;
+
         protected virtual Task<int> OnExecute(CommandLineApplication app)
         {            
             return Task.FromResult(0);
@@ -27,6 +30,19 @@ namespace KP_Steam_Uploader.Command
             Console.ForegroundColor = ConsoleColor.White;
             Console.Error.WriteLine(message);
             Console.ResetColor();
+        }
+
+        protected void InitializeSteam()
+        {
+            if (!SteamAPI.Init())
+            {
+                throw new Exception("Could not initialize SteamAPI");
+            }
+        }
+
+        protected void WriteSteamAppId(uint appId)
+        {
+            File.WriteAllText("steam_appid.txt",appId.ToString());
         }
     }
 }
