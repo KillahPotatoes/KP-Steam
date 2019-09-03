@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
@@ -8,7 +10,7 @@ using Steamworks;
 namespace KP_Steam_Uploader.Command.Upload
 {
     [Command(Name = "upload", Description = "Uploads file (legacy) or folder to Steam workshop.")]
-    public class DownloadCommand: AbstractKpSteamCommand
+    public class UploadCommand: AbstractKpSteamCommand
     {
         [Option(CommandOptionType.SingleValue, ShortName = "a", LongName = "app", Description = "Steam AppId")]
         public uint AppId { get; set; }
@@ -16,13 +18,13 @@ namespace KP_Steam_Uploader.Command.Upload
         [Option(CommandOptionType.SingleValue, ShortName = "i", LongName = "item", Description = "Workshop Id of item to update")]
         public ulong ItemId { get; set; }
         
-        [Option(CommandOptionType.SingleValue, ShortName = "p", LongName = "item", Description = "Content path")]
+        [Option(CommandOptionType.SingleValue, ShortName = "p", LongName = "path", Description = "Content path")]
         public string Path { get; set; }
         
         [Option(CommandOptionType.SingleOrNoValue, LongName = "legacy", Description = "Legacy, single file based upload mode.")]
         public (bool hasValue, string value) Legacy { get; }
 
-        public DownloadCommand(ILogger<DownloadCommand> logger, IConsole console)
+        public UploadCommand(ILogger<UploadCommand> logger, IConsole console)
         {
             Logger = logger;
             Console = console;
@@ -31,6 +33,22 @@ namespace KP_Steam_Uploader.Command.Upload
         protected override async Task<int> OnExecute(CommandLineApplication app)
         {
             Logger.LogInformation("Executing UploadCommand");
+            
+            if (AppId == 0)
+            {
+                Console.WriteLine("Arma3 - 107410");
+                
+                Console.Write("Please specify AppId: ");
+                var appId = Console.In.ReadLine();
+                AppId = uint.Parse(appId);
+            }
+            
+            if (ItemId == 0)
+            {
+                Console.Out.Write("Please specify ItemId: ");
+                var itemId = Console.In.ReadLine();
+                ItemId = uint.Parse(itemId);
+            }
 
             try
             {
@@ -48,6 +66,8 @@ namespace KP_Steam_Uploader.Command.Upload
                 {
                     throw new Exception("SteamUGC Upload not implemented yet!");
                 }
+                
+                Console.Out.WriteLine($"Upload finished");
 
                 return 0;
             }
@@ -61,7 +81,7 @@ namespace KP_Steam_Uploader.Command.Upload
 
         protected void SteamRemoteStorageUpload()
         {
-            if (AppId == 0)
+            if (ItemId == 0)
             {
                 throw new Exception("Uploading new files without Workshop Id is not supported yet!");
             }
@@ -74,8 +94,22 @@ namespace KP_Steam_Uploader.Command.Upload
             var updateRequest = SteamRemoteStorage.CreatePublishedFileUpdateRequest(new PublishedFileId_t(ItemId));
             if (!SteamRemoteStorage.UpdatePublishedFileFile(updateRequest, Path))
             {
-                throw new Exception("Steam file upload failed!");
+                throw new Exception("Steam file update failed!");
             }
+
+            var uploadCall = SteamRemoteStorage.CommitPublishedFileUpdate(updateRequest);
+            
+            _updatePublishedCallResult = CallResult<RemoteStorageUpdatePublishedFileResult_t>.Create(OnRemoteStorageUpdatePublishedFileResult);
+            _updatePublishedCallResult.Set(uploadCall);
+            
+            SteamAPI.RunCallbacks();
+            SteamAPI.Shutdown();
         }
+        
+        void OnRemoteStorageUpdatePublishedFileResult(RemoteStorageUpdatePublishedFileResult_t pCallback, bool bIOFailure) {
+            Logger.LogDebug("[" + RemoteStorageUpdatePublishedFileResult_t.k_iCallback + " - RemoteStorageUpdatePublishedFileResult] - " + pCallback.m_eResult + " -- " + pCallback.m_nPublishedFileId + " -- " + pCallback.m_bUserNeedsToAcceptWorkshopLegalAgreement);
+        }
+        
+        private CallResult<RemoteStorageUpdatePublishedFileResult_t> _updatePublishedCallResult;
     }
 }

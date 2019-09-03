@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using KP_Steam_Uploader.Command.Download;
+using KP_Steam_Uploader.Command.Upload;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
 
@@ -10,7 +11,8 @@ namespace KP_Steam_Uploader.Command
         ThrowOnUnexpectedArgument = false,
         OptionsComparison = System.StringComparison.InvariantCultureIgnoreCase)]
     [Subcommand(
-        typeof(DownloadCommand))]
+        typeof(DownloadCommand),
+            typeof(UploadCommand))]
     public class KpSteamCommand: AbstractKpSteamCommand
     {
 
