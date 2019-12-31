@@ -24,6 +24,9 @@ namespace KP_Steam_Uploader.Command.Upload
         [Option(CommandOptionType.SingleOrNoValue, LongName = "legacy", Description = "Legacy, single file based upload mode.")]
         public (bool hasValue, string value) Legacy { get; }
 
+        [Option(CommandOptionType.SingleValue, ShortName = "c", LongName = "changenotes", Description = "Change Notes")]
+        public string ChangeNotes { get; set; } = "";
+
         public UploadCommand(ILogger<UploadCommand> logger, IConsole console)
         {
             Logger = logger;
@@ -64,7 +67,7 @@ namespace KP_Steam_Uploader.Command.Upload
                 }
                 else
                 {
-                    throw new Exception("SteamUGC Upload not implemented yet!");
+                    SteamUGCUpload();
                 }
                 
                 Console.Out.WriteLine($"Upload finished");
@@ -111,5 +114,38 @@ namespace KP_Steam_Uploader.Command.Upload
         }
         
         private CallResult<RemoteStorageUpdatePublishedFileResult_t> _updatePublishedCallResult;
+        
+        protected void SteamUGCUpload()
+        {
+            if (ItemId == 0)
+            {
+                throw new Exception("Uploading new items without Workshop Id is not supported yet!");
+            }
+
+            if (!Directory.Exists(Path))
+            {
+                throw new Exception($"There is no directory under: \"{Path}\"");
+            }
+            
+            var update = SteamUGC.StartItemUpdate(new AppId_t(AppId), new PublishedFileId_t(ItemId));
+            if (!SteamUGC.SetItemContent(update, Path))
+            {
+                throw new Exception("Item Content could not be set!");
+            }
+            
+            var updateCall = SteamUGC.SubmitItemUpdate(update, ChangeNotes);
+            
+            _submitItemUpdateResult = CallResult<SubmitItemUpdateResult_t>.Create(OnSubmitItemUpdateResult);
+            _submitItemUpdateResult.Set(updateCall);
+            
+            SteamAPI.RunCallbacks();
+            SteamAPI.Shutdown();
+        }
+        
+        void OnSubmitItemUpdateResult(SubmitItemUpdateResult_t pCallback, bool bIOFailure) {
+            Logger.LogDebug("[" + SubmitItemUpdateResult_t.k_iCallback + " - OnSubmitItemUpdateResult] - " + pCallback.m_eResult + " -- " + pCallback.m_nPublishedFileId + " -- " + pCallback.m_bUserNeedsToAcceptWorkshopLegalAgreement);
+        }
+
+        private CallResult<SubmitItemUpdateResult_t> _submitItemUpdateResult;
     }
 }
