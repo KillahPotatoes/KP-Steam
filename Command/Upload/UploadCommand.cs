@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
@@ -59,15 +60,15 @@ namespace KP_Steam_Uploader.Command.Upload
                 InitializeSteam();
                 
 
-                Console.Out.WriteLine($"Uploading item {ItemId} for app {AppId}");
+                Logger.LogInformation($"Uploading item {ItemId} for app {AppId}");
 
                 if (Legacy.hasValue)
                 {
-                    SteamRemoteStorageUpload();
+                    await SteamRemoteStorageUpload();
                 }
                 else
                 {
-                    SteamUGCUpload();
+                    await SteamUGCUpload();
                 }
                 
                 Console.Out.WriteLine($"Upload finished");
@@ -82,7 +83,7 @@ namespace KP_Steam_Uploader.Command.Upload
             
         }
 
-        protected void SteamRemoteStorageUpload()
+        protected async Task SteamRemoteStorageUpload()
         {
             if (ItemId == 0)
             {
@@ -93,29 +94,44 @@ namespace KP_Steam_Uploader.Command.Upload
             {
                 throw new Exception($"There is no file under: \"{Path}\"");
             }
-            
+
             var updateRequest = SteamRemoteStorage.CreatePublishedFileUpdateRequest(new PublishedFileId_t(ItemId));
-            if (!SteamRemoteStorage.UpdatePublishedFileFile(updateRequest, Path))
+            if (!SteamRemoteStorage.UpdatePublishedFileFile(updateRequest, NormalizePath(Path)))
             {
                 throw new Exception("Steam file update failed!");
             }
 
             var uploadCall = SteamRemoteStorage.CommitPublishedFileUpdate(updateRequest);
             
+            _updatePublishedCallResultTask = new TaskCompletionSource<bool>();
             _updatePublishedCallResult = CallResult<RemoteStorageUpdatePublishedFileResult_t>.Create(OnRemoteStorageUpdatePublishedFileResult);
             _updatePublishedCallResult.Set(uploadCall);
             
             SteamAPI.RunCallbacks();
             SteamAPI.Shutdown();
+
+            await _updatePublishedCallResultTask.Task;
         }
         
         void OnRemoteStorageUpdatePublishedFileResult(RemoteStorageUpdatePublishedFileResult_t pCallback, bool bIOFailure) {
-            Logger.LogDebug("[" + RemoteStorageUpdatePublishedFileResult_t.k_iCallback + " - RemoteStorageUpdatePublishedFileResult] - " + pCallback.m_eResult + " -- " + pCallback.m_nPublishedFileId + " -- " + pCallback.m_bUserNeedsToAcceptWorkshopLegalAgreement);
+            Logger.LogInformation("[RemoteStorageUpdatePublishedFileResult]" +
+                                  $" Result: {pCallback.m_eResult} " +
+                                  $"- Published file id: {pCallback.m_nPublishedFileId}" +
+                                  $"- Needs to accept workshop legal agreement: {pCallback.m_bUserNeedsToAcceptWorkshopLegalAgreement}");
+            
+            if (pCallback.m_eResult != EResult.k_EResultOK)
+            {
+                _updatePublishedCallResultTask.TrySetException(
+                    new Exception($"Uploading failed with result {pCallback.m_eResult}"));
+            }
+
+            _updatePublishedCallResultTask.TrySetResult(true);
         }
         
         private CallResult<RemoteStorageUpdatePublishedFileResult_t> _updatePublishedCallResult;
+        private TaskCompletionSource<bool> _updatePublishedCallResultTask;
         
-        protected void SteamUGCUpload()
+        protected async Task SteamUGCUpload()
         {
             if (ItemId == 0)
             {
@@ -135,17 +151,41 @@ namespace KP_Steam_Uploader.Command.Upload
             
             var updateCall = SteamUGC.SubmitItemUpdate(update, ChangeNotes);
             
+            _submitItemUpdateResultTask = new TaskCompletionSource<bool>();
             _submitItemUpdateResult = CallResult<SubmitItemUpdateResult_t>.Create(OnSubmitItemUpdateResult);
             _submitItemUpdateResult.Set(updateCall);
             
             SteamAPI.RunCallbacks();
             SteamAPI.Shutdown();
+
+            await _submitItemUpdateResultTask.Task;
         }
         
         void OnSubmitItemUpdateResult(SubmitItemUpdateResult_t pCallback, bool bIOFailure) {
-            Logger.LogDebug("[" + SubmitItemUpdateResult_t.k_iCallback + " - OnSubmitItemUpdateResult] - " + pCallback.m_eResult + " -- " + pCallback.m_nPublishedFileId + " -- " + pCallback.m_bUserNeedsToAcceptWorkshopLegalAgreement);
-        }
+            Logger.LogDebug("[OnSubmitItemUpdateResult]" +
+                            $" Result: {pCallback.m_eResult}" +
+                            $"- Published file id: {pCallback.m_nPublishedFileId}" +
+                            $"- Needs to accept workshop legal agreement: {pCallback.m_bUserNeedsToAcceptWorkshopLegalAgreement}");
+            
+            if (pCallback.m_eResult != EResult.k_EResultOK)
+            {
+                _submitItemUpdateResultTask.TrySetException(
+                    new Exception($"Uploading failed with result {pCallback.m_eResult}"));
+            }
 
+            _submitItemUpdateResultTask.TrySetResult(true);
+        }
+        
         private CallResult<SubmitItemUpdateResult_t> _submitItemUpdateResult;
+        private TaskCompletionSource<bool> _submitItemUpdateResultTask;
+        
+        // see https://github.com/Facepunch/Facepunch.Steamworks/blob/legacy/Facepunch.Steamworks/Client/RemoteStorage.cs#L15
+        public static string NormalizePath(string path)
+        {
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? new FileInfo($"x:/{path}").FullName.Substring(3)
+                : new FileInfo($"/x/{path}").FullName.Substring(3);
+        }
+        
     }
 }
