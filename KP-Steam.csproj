@@ -27,9 +27,11 @@
       <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="2.2.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="2.2.0" />
-      <PackageReference Include="Serilog" Version="2.8.0" />
+      <PackageReference Include="Serilog" Version="2.9.0" />
       <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
       <PackageReference Include="Serilog.Settings.Configuration" Version="3.1.0" />
+      <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+      <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -47,9 +49,6 @@
 
     <ItemGroup>
       <None Remove="assembly\**" />
-      <None Update="appsettings.Development.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
       <None Update="appsettings.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
