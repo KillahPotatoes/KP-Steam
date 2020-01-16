@@ -71,7 +71,7 @@ namespace KP_Steam_Uploader.Command.Upload
                     await SteamUGCUpload();
                 }
                 
-                Console.Out.WriteLine($"Upload finished");
+                Logger.LogInformation($"Upload finished");
 
                 return 0;
             }
