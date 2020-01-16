@@ -117,7 +117,13 @@ namespace KP_Steam_Uploader.Command.Upload
             _updatePublishedCallResult = CallResult<RemoteStorageUpdatePublishedFileResult_t>.Create(OnRemoteStorageUpdatePublishedFileResult);
             _updatePublishedCallResult.Set(uploadCall);
             
-            SteamAPI.RunCallbacks();
+            // todo move callbacks loop to some better place
+            while (!_updatePublishedCallResultTask.Task.IsCompleted)
+            {
+                Logger.LogDebug("Running callbacks");
+                SteamAPI.RunCallbacks();
+                Thread.Sleep(100);
+            }
         
             if (SteamRemoteStorage.FileExists(tempPath))
             {
@@ -140,6 +146,7 @@ namespace KP_Steam_Uploader.Command.Upload
             {
                 _updatePublishedCallResultTask.TrySetException(
                     new Exception($"Uploading failed with result {pCallback.m_eResult}"));
+                return;
             }
 
             _updatePublishedCallResultTask.TrySetResult(true);
@@ -171,10 +178,18 @@ namespace KP_Steam_Uploader.Command.Upload
             _submitItemUpdateResultTask = new TaskCompletionSource<bool>();
             _submitItemUpdateResult = CallResult<SubmitItemUpdateResult_t>.Create(OnSubmitItemUpdateResult);
             _submitItemUpdateResult.Set(updateCall);
+
+            // todo move callbacks loop to some better place
+            while (!_submitItemUpdateResultTask.Task.IsCompleted)
+            {
+                Logger.LogDebug("Running callbacks");
+                SteamAPI.RunCallbacks();
+                Thread.Sleep(100);
+            }
             
-            SteamAPI.RunCallbacks();
             SteamAPI.Shutdown();
 
+            // wait for task
             await _submitItemUpdateResultTask.Task;
         }
         
@@ -188,6 +203,7 @@ namespace KP_Steam_Uploader.Command.Upload
             {
                 _submitItemUpdateResultTask.TrySetException(
                     new Exception($"Uploading failed with result {pCallback.m_eResult}"));
+                return;
             }
 
             _submitItemUpdateResultTask.TrySetResult(true);
