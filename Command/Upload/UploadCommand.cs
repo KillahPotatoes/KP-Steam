@@ -95,8 +95,18 @@ namespace KP_Steam_Uploader.Command.Upload
                 throw new Exception($"There is no file under: \"{Path}\"");
             }
 
+            var fileName = (new FileInfo(Path)).Name;
+            var tempPath = NormalizePath($"kp-steam-tmp/{fileName}");
+            var fileContent = File.ReadAllBytes(Path);
+            
+            Logger.LogDebug($"Copying file to temp path \"{tempPath}\"");
+            if (!SteamRemoteStorage.FileWrite(tempPath, fileContent, fileContent.Length))
+            {
+                throw new Exception("Could not move file to temporary path");
+            }
+
             var updateRequest = SteamRemoteStorage.CreatePublishedFileUpdateRequest(new PublishedFileId_t(ItemId));
-            if (!SteamRemoteStorage.UpdatePublishedFileFile(updateRequest, NormalizePath(Path)))
+            if (!SteamRemoteStorage.UpdatePublishedFileFile(updateRequest, tempPath))
             {
                 throw new Exception("Steam file update failed!");
             }
@@ -108,8 +118,15 @@ namespace KP_Steam_Uploader.Command.Upload
             _updatePublishedCallResult.Set(uploadCall);
             
             SteamAPI.RunCallbacks();
+        
+            if (SteamRemoteStorage.FileExists(tempPath))
+            {
+                SteamRemoteStorage.FileDelete(tempPath);
+            }
+            
             SteamAPI.Shutdown();
 
+            // wait for task
             await _updatePublishedCallResultTask.Task;
         }
         
