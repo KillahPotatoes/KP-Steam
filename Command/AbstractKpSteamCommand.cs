@@ -19,17 +19,8 @@ namespace KP_Steam_Uploader.Command
         
         protected void OnException(Exception ex)
         {
-            OutputError(ex.Message);
             Logger.LogError(ex.Message);
             Logger.LogDebug(ex, ex.Message);
-        }
-
-        protected void OutputError(string message)
-        {
-            Console.BackgroundColor = ConsoleColor.Red;
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Error.WriteLine(message);
-            Console.ResetColor();
         }
 
         protected void InitializeSteam()
