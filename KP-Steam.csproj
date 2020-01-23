@@ -5,6 +5,7 @@
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <LangVersion>7.1</LangVersion>
+        <PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>
         <!---->
         <RootNamespace>KP_Steam_Uploader</RootNamespace>
         <Authors>KillahPotatoes, veteran29</Authors>
