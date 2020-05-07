@@ -1,9 +1,11 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using KP_Steam_Uploader.Util;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
 using Steamworks;
@@ -32,7 +34,10 @@ namespace KP_Steam_Uploader.Command.Upload
         {
             Logger = logger;
             Console = console;
+            SteamUgcUtil = new SteamUgc(logger);
         }
+
+        protected SteamUgc SteamUgcUtil;
 
         protected override async Task<int> OnExecute(CommandLineApplication app)
         {
@@ -172,7 +177,19 @@ namespace KP_Steam_Uploader.Command.Upload
             {
                 throw new Exception("Item Content could not be set!");
             }
-            
+
+            var itemDetails = await SteamUgcUtil.GetSingleQueryUgcResult(ItemId);
+            // If uploading for Arma check for Scenario tag.
+            // UGC upload over scenario is most likely a mistake which we will prevent.
+            if (AppId == (uint)AppIds.Arma)
+            {
+                var tags = itemDetails.m_rgchTags.Split(',');
+                if (tags.Contains("Scenario"))
+                {
+                    throw new Exception("Scenaarios can't be uploaded via UGC, use --legacy mode!");                    
+                }
+            }
+
             var updateCall = SteamUGC.SubmitItemUpdate(update, ChangeNotes);
             
             _submitItemUpdateResultTask = new TaskCompletionSource<bool>();
