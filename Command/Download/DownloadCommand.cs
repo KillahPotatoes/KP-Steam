@@ -48,12 +48,12 @@ namespace KP_Steam_Uploader.Command.Download
                 InitializeSteam();
                 
                 Console.Out.WriteLine($"Downloading item {ItemId} for app {AppId}");
-                
+
                 if (!SteamUGC.DownloadItem(new PublishedFileId_t(ItemId), true))
                 {
                     throw new Exception($"Could not download item {ItemId}");
                 }
-                
+
                 Console.Out.WriteLine($"Item {ItemId} queued for download in Steam");
 
                 return 0;

@@ -6,6 +6,11 @@ using Microsoft.Extensions.Logging;
 
 namespace KP_Steam_Uploader.Command
 {
+    public enum AppIds
+    {
+        Arma = 107410,
+    }
+    
     [Command(
         Name = "kpsteam",
         ThrowOnUnexpectedArgument = false,
