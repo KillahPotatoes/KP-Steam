@@ -101,7 +101,8 @@ namespace KP_Steam_Uploader.Command.Upload
             }
 
             var fileName = (new FileInfo(Path)).Name;
-            var tempPath = NormalizePath($"kp-steam-tmp/{fileName}");
+            var timestamp = DateTime.Now.ToString("yyyyMMddHHmmssffff");
+            var tempPath = NormalizePath($"kp_steam_cli_{timestamp}_{fileName}");
             var fileContent = File.ReadAllBytes(Path);
             
             Logger.LogDebug($"Copying file to temp path \"{tempPath}\"");
