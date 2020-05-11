@@ -187,7 +187,7 @@ namespace KP_Steam_Uploader.Command.Upload
                 var tags = itemDetails.m_rgchTags.Split(',');
                 if (tags.Contains("Scenario"))
                 {
-                    throw new Exception("Scenaarios can't be uploaded via UGC, use --legacy mode!");                    
+                    throw new Exception("Scenarios can't be uploaded via UGC, use --legacy mode!");                    
                 }
             }
 
