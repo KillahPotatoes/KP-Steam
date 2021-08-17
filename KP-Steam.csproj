@@ -36,7 +36,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Reference Include="Steamworks.NET, Version=12.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <Reference Include="Steamworks.NET, Version=14.0.0.0, Culture=neutral, PublicKeyToken=null">
         <HintPath>assembly\Steamworks.NET\Windows-x64\Steamworks.NET.dll</HintPath>
       </Reference>
     </ItemGroup>
