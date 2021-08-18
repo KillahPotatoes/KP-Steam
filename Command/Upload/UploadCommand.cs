@@ -57,14 +57,14 @@ namespace KP_Steam_Uploader.Command.Upload
                 Console.WriteLine("Arma3 - 107410");
 
                 Console.Write("Please specify AppId: ");
-                string appId = Console.In.ReadLine();
+                var appId = Console.In.ReadLine();
                 AppId = uint.Parse(appId);
             }
             if (ItemId == 0 && Title == "" && Description == "" && TagsString == "")
             {
                 Console.WriteLine("No ItemId or Item Attributes provided!");
                 Console.Write("Please specify an ItemId or Title: ");
-                string input = Console.In.ReadLine();
+                var input = Console.In.ReadLine();
                 if (ulong.TryParse(input, out ulong result))
                 {
                     ItemId = result;
@@ -79,8 +79,8 @@ namespace KP_Steam_Uploader.Command.Upload
                 }
             }
 
-            List<string> pTags = new List<string>(TagsString.Split(","));
-            bool appRunning = true;
+            var pTags = new List<string>(TagsString.Split(","));
+            var appRunning = true;
             Thread callbackThread = null;
             try
             {

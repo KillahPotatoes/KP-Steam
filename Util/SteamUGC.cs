@@ -23,9 +23,9 @@ namespace KP_Steam_Uploader.Util
         {
             if (SteamRemoteStorage.GetFileCount() > 0)
             {
-                for (int i = 0; i <= SteamRemoteStorage.GetFileCount(); i++)
+                for (var i = 0; i <= SteamRemoteStorage.GetFileCount(); i++)
                 {
-                    string sFileName = SteamRemoteStorage.GetFileNameAndSize(0, out int iFileSize);
+                    var sFileName = SteamRemoteStorage.GetFileNameAndSize(0, out _);
                     Logger.LogInformation($"Deleting stale file: {sFileName}");
                     SteamRemoteStorage.FileDelete(sFileName);
                 }
@@ -36,15 +36,15 @@ namespace KP_Steam_Uploader.Util
         {
             PublishedFileId_t[] itemIds = { new PublishedFileId_t(itemId) };
             // Create query and enable all wanted returns
-            UGCQueryHandle_t queryHandle = SteamUGC.CreateQueryUGCDetailsRequest(itemIds, (uint)itemIds.Length);
+            var queryHandle = SteamUGC.CreateQueryUGCDetailsRequest(itemIds, (uint)itemIds.Length);
             SteamUGC.SetReturnKeyValueTags(queryHandle, true);
             SteamUGC.SetReturnMetadata(queryHandle, true);
 
-            SteamAPICall_t queryUgcRequestCall = SteamUGC.SendQueryUGCRequest(queryHandle);
+            var queryUgcRequestCall = SteamUGC.SendQueryUGCRequest(queryHandle);
 
-            TaskCompletionSource<SteamUGCDetails_t> getSingleQueryUgcResultTask = new TaskCompletionSource<SteamUGCDetails_t>();
+            var getSingleQueryUgcResultTask = new TaskCompletionSource<SteamUGCDetails_t>();
             // Handle query result and resolve the task
-            CallResult<SteamUGCQueryCompleted_t> resultHandler = CallResult<SteamUGCQueryCompleted_t>.Create((pCallback, bIoFailure) =>
+            var resultHandler = CallResult<SteamUGCQueryCompleted_t>.Create((pCallback, bIoFailure) =>
             {
                 if (!noLog)
                 {
@@ -78,15 +78,15 @@ namespace KP_Steam_Uploader.Util
 
         public async Task<List<PublishedFileId_t>> GetAllUserPublishedworkshopFiles(bool noLog = false)
         {
-            List<PublishedFileId_t> publishedWorkshopFiles = new List<PublishedFileId_t>();
+            var publishedWorkshopFiles = new List<PublishedFileId_t>();
             try
             {
-                uint startIndex = 0;
-                bool moreFiles = true;
+                var startIndex = 0;
+                var moreFiles = true;
                 while (moreFiles)
                 {
-                    List<PublishedFileId_t> tempPublishedWorkshopFiles = await GetUserPublishedworkshopFiles(startIndex, noLog);
-                    foreach (PublishedFileId_t publishedFileId in tempPublishedWorkshopFiles)
+                    var tempPublishedWorkshopFiles = await GetUserPublishedworkshopFiles((uint)startIndex, noLog);
+                    foreach (var publishedFileId in tempPublishedWorkshopFiles)
                     {
                         if (publishedWorkshopFiles.Contains(publishedFileId))
                         {
@@ -101,7 +101,7 @@ namespace KP_Steam_Uploader.Util
                     {
                         moreFiles = false;
                     }
-                    startIndex = (uint)(publishedWorkshopFiles.Count);
+                    startIndex = publishedWorkshopFiles.Count;
                 }
             }
             catch (Exception ex)
@@ -113,10 +113,10 @@ namespace KP_Steam_Uploader.Util
 
         public async Task<List<PublishedFileId_t>> GetUserPublishedworkshopFiles(uint startIndex = 0, bool noLog = false)
         {
-            List<PublishedFileId_t> publishedWorkshopFiles = new List<PublishedFileId_t>();
-            SteamAPICall_t remoteStorageEnumerateUserSharedWorkshopFilesResultCall = SteamRemoteStorage.EnumerateUserSharedWorkshopFiles(SteamUser.GetSteamID(), startIndex, null, null);
-            TaskCompletionSource<bool> remoteStorageEnumerateUserSharedWorkshopFilesResultTask = new TaskCompletionSource<bool>();
-            CallResult<RemoteStorageEnumerateUserSharedWorkshopFilesResult_t> remoteStorageEnumerateUserSharedWorkshopFilesResult = new CallResult<RemoteStorageEnumerateUserSharedWorkshopFilesResult_t>((pCallback, bIOFailure) =>
+            var publishedWorkshopFiles = new List<PublishedFileId_t>();
+            var remoteStorageEnumerateUserSharedWorkshopFilesResultCall = SteamRemoteStorage.EnumerateUserSharedWorkshopFiles(SteamUser.GetSteamID(), startIndex, null, null);
+            var remoteStorageEnumerateUserSharedWorkshopFilesResultTask = new TaskCompletionSource<bool>();
+            var remoteStorageEnumerateUserSharedWorkshopFilesResult = new CallResult<RemoteStorageEnumerateUserSharedWorkshopFilesResult_t>((pCallback, bIOFailure) =>
             {
                 if (!noLog)
                 {
@@ -129,7 +129,7 @@ namespace KP_Steam_Uploader.Util
                         new Exception($"Enumerating files failed with result {pCallback.m_eResult}"));
                     return;
                 }
-                foreach (PublishedFileId_t _publishedFileId in pCallback.m_rgPublishedFileId)
+                foreach (var _publishedFileId in pCallback.m_rgPublishedFileId)
                 {
                     publishedWorkshopFiles.Add(_publishedFileId);
                 }
@@ -158,9 +158,9 @@ namespace KP_Steam_Uploader.Util
 
         public async Task<bool> DeletePublishedFile(ulong publishedFileId)
         {
-            TaskCompletionSource<bool> deleteFileTask = new TaskCompletionSource<bool>();
+            var deleteFileTask = new TaskCompletionSource<bool>();
             // Handle query result and resolve the task
-            CallResult<RemoteStorageDeletePublishedFileResult_t> deleteFileResult = CallResult<RemoteStorageDeletePublishedFileResult_t>.Create((pCallback, bIoFailure) =>
+            var deleteFileResult = CallResult<RemoteStorageDeletePublishedFileResult_t>.Create((pCallback, bIoFailure) =>
             {
                 Logger.LogInformation("[RemoteStorageDeletePublishedFile]" +
                                           $" Result: {pCallback.m_eResult} " +
@@ -193,9 +193,9 @@ namespace KP_Steam_Uploader.Util
                 throw new Exception($"There is no file under: \"{sPath}\"");
             }
 
-            string name = (new FileInfo(sPath)).Name;
-            string tempPath = NormalizePath($"theace0296_{name}");
-            byte[] content = File.ReadAllBytes(sPath);
+            var name = (new FileInfo(sPath)).Name;
+            var tempPath = NormalizePath($"theace0296_{name}");
+            var content = File.ReadAllBytes(sPath);
             Logger.LogInformation($"Uploading \"{name}\" to Steam cloud as \"{tempPath}\".");
 
             if (SteamRemoteStorage.FileExists(tempPath))
@@ -204,9 +204,9 @@ namespace KP_Steam_Uploader.Util
                 SteamRemoteStorage.FileDelete(tempPath);
             }
 
-            TaskCompletionSource<string> fileUploadTask = new TaskCompletionSource<string>();
+            var fileUploadTask = new TaskCompletionSource<string>();
             // Handle query result and resolve the task
-            CallResult<RemoteStorageFileWriteAsyncComplete_t> fileUploadResult = CallResult<RemoteStorageFileWriteAsyncComplete_t>.Create((pCallback, bIoFailure) =>
+            var fileUploadResult = CallResult<RemoteStorageFileWriteAsyncComplete_t>.Create((pCallback, bIoFailure) =>
             {
                 Logger.LogInformation("[RemoteStorageFileWriteAsync]" +
                                     $" Result: {pCallback.m_eResult} ");
@@ -252,7 +252,7 @@ namespace KP_Steam_Uploader.Util
                 throw new Exception($"No description provied!");
             }
 
-            string contentTempPath = await SteamRemoteStorageUploadFile(filePath);
+            var contentTempPath = await SteamRemoteStorageUploadFile(filePath);
 
             string previewFileTempPath = null;
             if (File.Exists(previewPath))
@@ -260,13 +260,13 @@ namespace KP_Steam_Uploader.Util
                 previewFileTempPath = await SteamRemoteStorageUploadFile(previewPath);
             }
 
-            TaskCompletionSource<bool> remoteStoragePublishOrUpdateTask = new TaskCompletionSource<bool>();
+            var remoteStoragePublishOrUpdateTask = new TaskCompletionSource<bool>();
             CallResult<RemoteStoragePublishFileResult_t> remoteStoragePublishFileResult = null;
             CallResult<RemoteStorageUpdatePublishedFileResult_t> updatePublishedCallResult = null;
             if (itemId == 0)
             {
                 Logger.LogInformation($"Publishing \"{title}\" to Steam workshop");
-                SteamAPICall_t publishCall = SteamRemoteStorage.PublishWorkshopFile(
+                var publishCall = SteamRemoteStorage.PublishWorkshopFile(
                     contentTempPath,
                     previewFileTempPath,
                     SteamUtils.GetAppID(),
@@ -297,7 +297,7 @@ namespace KP_Steam_Uploader.Util
             }
             else
             {
-                PublishedFileUpdateHandle_t updateRequest = SteamRemoteStorage.CreatePublishedFileUpdateRequest(new PublishedFileId_t(itemId));
+                var updateRequest = SteamRemoteStorage.CreatePublishedFileUpdateRequest(new PublishedFileId_t(itemId));
                 if (!SteamRemoteStorage.UpdatePublishedFileFile(updateRequest, contentTempPath))
                 {
                     throw new Exception("Steam file update failed!");
@@ -306,10 +306,10 @@ namespace KP_Steam_Uploader.Util
                 {
                     throw new Exception("Steam preview file update failed!");
                 }
-                SteamUGCDetails_t itemDetails = await GetSingleQueryUgcResult(itemId);
-                List<string> combinedTags = new List<string>(pTags);
-                string[] tags = itemDetails.m_rgchTags.Split(",");
-                foreach (string tag in tags)
+                var itemDetails = await GetSingleQueryUgcResult(itemId);
+                var combinedTags = new List<string>(pTags);
+                var tags = itemDetails.m_rgchTags.Split(",");
+                foreach (var tag in tags)
                 {
                     if (!combinedTags.Contains(tag))
                     {
@@ -322,7 +322,7 @@ namespace KP_Steam_Uploader.Util
                 }
 
                 Logger.LogInformation($"Updating \"{title}\" on Steam workshop");
-                SteamAPICall_t uploadCall = SteamRemoteStorage.CommitPublishedFileUpdate(updateRequest);
+                var uploadCall = SteamRemoteStorage.CommitPublishedFileUpdate(updateRequest);
 
                 updatePublishedCallResult = CallResult<RemoteStorageUpdatePublishedFileResult_t>.Create((RemoteStorageUpdatePublishedFileResult_t pCallback, bool bIOFailure) =>
                 {
@@ -382,28 +382,28 @@ namespace KP_Steam_Uploader.Util
                 throw new Exception($"There is no directory under: \"{filePath}\"");
             }
 
-            UGCUpdateHandle_t update = SteamUGC.StartItemUpdate(SteamUtils.GetAppID(), new PublishedFileId_t(itemId));
+            var update = SteamUGC.StartItemUpdate(SteamUtils.GetAppID(), new PublishedFileId_t(itemId));
             if (!SteamUGC.SetItemContent(update, filePath))
             {
                 throw new Exception("Item Content could not be set!");
             }
 
-            SteamUGCDetails_t itemDetails = await GetSingleQueryUgcResult(itemId);
+            var itemDetails = await GetSingleQueryUgcResult(itemId);
             // If uploading for Arma check for Scenario tag.
             // UGC upload over scenario is most likely a mistake which we will prevent.
             if (SteamUtils.GetAppID().m_AppId == (uint)Command.AppIds.Arma)
             {
-                string[] tags = itemDetails.m_rgchTags.Split(",");
+                var tags = itemDetails.m_rgchTags.Split(",");
                 if (tags.Contains("Scenario"))
                 {
                     throw new Exception("Scenarios can\"t be uploaded via UGC, use --legacy mode!");
                 }
             }
 
-            SteamAPICall_t updateCall = SteamUGC.SubmitItemUpdate(update, changeNotes);
+            var updateCall = SteamUGC.SubmitItemUpdate(update, changeNotes);
 
-            TaskCompletionSource<bool> submitItemUpdateResultTask = new TaskCompletionSource<bool>();
-            CallResult<SubmitItemUpdateResult_t> submitItemUpdateResult = CallResult<SubmitItemUpdateResult_t>.Create((pCallback, bIOFailure) =>
+            var submitItemUpdateResultTask = new TaskCompletionSource<bool>();
+            var submitItemUpdateResult = CallResult<SubmitItemUpdateResult_t>.Create((pCallback, bIOFailure) =>
             {
                 Logger.LogInformation("[OnSubmitItemUpdateResult]" +
                                 $" Result: {pCallback.m_eResult}" +
