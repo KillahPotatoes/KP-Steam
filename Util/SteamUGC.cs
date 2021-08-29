@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,18 +5,20 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Steamworks;
 
 namespace KP_Steam_Uploader.Util
 {
     public class SteamUgc
     {
         protected ILogger Logger;
-
+        
         public SteamUgc(ILogger logger)
         {
             Logger = logger;
         }
-
+        
         public void DeleteStaleFiles()
         {
             if (SteamRemoteStorage.GetFileCount() > 0)
@@ -36,12 +36,12 @@ namespace KP_Steam_Uploader.Util
         {
             PublishedFileId_t[] itemIds = { new PublishedFileId_t(itemId) };
             // Create query and enable all wanted returns
-            var queryHandle = SteamUGC.CreateQueryUGCDetailsRequest(itemIds, (uint)itemIds.Length);
+            var queryHandle = SteamUGC.CreateQueryUGCDetailsRequest(itemIds, (uint) itemIds.Length);
             SteamUGC.SetReturnKeyValueTags(queryHandle, true);
             SteamUGC.SetReturnMetadata(queryHandle, true);
 
             var queryUgcRequestCall = SteamUGC.SendQueryUGCRequest(queryHandle);
-
+            
             var getSingleQueryUgcResultTask = new TaskCompletionSource<SteamUGCDetails_t>();
             // Handle query result and resolve the task
             var resultHandler = CallResult<SteamUGCQueryCompleted_t>.Create((pCallback, bIoFailure) =>
@@ -61,11 +61,11 @@ namespace KP_Steam_Uploader.Util
 
                 SteamUGCDetails_t itemResult;
                 SteamUGC.GetQueryUGCResult(pCallback.m_handle, 0, out itemResult);
-
+                
                 getSingleQueryUgcResultTask.SetResult(itemResult);
             });
             resultHandler.Set(queryUgcRequestCall);
-
+            
             while (!getSingleQueryUgcResultTask.Task.IsCompleted)
             {
                 Thread.Sleep(100);
