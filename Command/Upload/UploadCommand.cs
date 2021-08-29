@@ -1,20 +1,20 @@
-using KP_Steam_Uploader.Util;
-using McMaster.Extensions.CommandLineUtils;
-using Microsoft.Extensions.Logging;
-using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using KP_Steam_Uploader.Util;
+using McMaster.Extensions.CommandLineUtils;
+using Microsoft.Extensions.Logging;
+using Steamworks;
 
 namespace KP_Steam_Uploader.Command.Upload
 {
     [Command(Name = "upload", Description = "Uploads file (legacy) or folder to Steam workshop.")]
-    public class UploadCommand : AbstractKpSteamCommand
+    public class UploadCommand: AbstractKpSteamCommand
     {
         [Option(CommandOptionType.SingleValue, ShortName = "a", LongName = "app", Description = "Steam AppId")]
         public uint AppId { get; set; }
-
+        
         [Option(CommandOptionType.SingleValue, ShortName = "i", LongName = "item", Description = "Workshop Id of item to update")]
         public ulong ItemId { get; set; }
 
@@ -51,11 +51,11 @@ namespace KP_Steam_Uploader.Command.Upload
         protected override async Task<int> OnExecute(CommandLineApplication app)
         {
             Logger.LogInformation("Executing UploadCommand");
-
+            
             if (AppId == 0)
             {
                 Console.WriteLine("Arma3 - 107410");
-
+                
                 Console.Write("Please specify AppId: ");
                 var appId = Console.In.ReadLine();
                 AppId = uint.Parse(appId);
