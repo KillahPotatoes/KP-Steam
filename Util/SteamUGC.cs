@@ -18,19 +18,6 @@ namespace KP_Steam_Uploader.Util
         {
             Logger = logger;
         }
-        
-        public void DeleteStaleFiles()
-        {
-            if (SteamRemoteStorage.GetFileCount() > 0)
-            {
-                for (var i = 0; i <= SteamRemoteStorage.GetFileCount(); i++)
-                {
-                    var sFileName = SteamRemoteStorage.GetFileNameAndSize(0, out _);
-                    Logger.LogInformation($"Deleting stale file: {sFileName}");
-                    SteamRemoteStorage.FileDelete(sFileName);
-                }
-            }
-        }
 
         public async Task<SteamUGCDetails_t> GetSingleQueryUgcResult(ulong itemId, bool noLog = false)
         {
@@ -74,6 +61,19 @@ namespace KP_Steam_Uploader.Util
             SteamUGC.ReleaseQueryUGCRequest(queryHandle);
             resultHandler.Dispose();
             return await getSingleQueryUgcResultTask.Task;
+        }
+        
+        public void DeleteStaleFiles()
+        {
+            if (SteamRemoteStorage.GetFileCount() > 0)
+            {
+                for (var i = 0; i <= SteamRemoteStorage.GetFileCount(); i++)
+                {
+                    var sFileName = SteamRemoteStorage.GetFileNameAndSize(0, out _);
+                    Logger.LogInformation($"Deleting stale file: {sFileName}");
+                    SteamRemoteStorage.FileDelete(sFileName);
+                }
+            }
         }
 
         public async Task<List<PublishedFileId_t>> GetAllUserPublishedworkshopFiles(bool noLog = false)
